@@ -9,11 +9,16 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <!-- Place favicon.ico in the root directory -->
 
-    
+    <!-- build:css css/vendor.css -->
+    <!-- bower:css -->
+    <!-- endbower -->
+    <!-- endbuild -->
 
-    <link rel="stylesheet" href="css/main.css">
+    <!-- build:css css/main.css -->
+    <!-- inject:css -->
+    <!-- endinject -->
+    <!-- endbuild -->
 
-    
   </head>
   <body>
     <!--[if lt IE 10]>
@@ -22,13 +27,19 @@
 
     <h1>AngularJS and TypeScript</h1>
 
-
     <div ng-view class="slide-animation"></div>
 
-    <script src="js/vendor.js"></script>
+    <!-- build:js js/vendor.js -->
+    <!-- bower:js -->
+    <!-- endbower -->
+    <!-- endbuild -->
 
-    
+    <!-- build:js js/plugins.js -->
+    <!-- endbuild -->
 
-    <script src="js/main.js"></script>
+    <!-- build:js js/main.js -->
+    <!-- inject:js -->
+    <!-- endinject -->
+    <!-- endbuild -->
   </body>
 </html>
