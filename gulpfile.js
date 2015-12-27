@@ -38,7 +38,7 @@ const reload = browserSync.reload;
 /**
 * Clean all
 */
-gulp.task('clean', del.bind(null, ['.tmp', 'dist','maps']));
+gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 
 
 /**
@@ -53,7 +53,7 @@ gulp.task('ts-lint', () => {
 /**
 * Compile TypeScript and include references to library and app .d.ts files.
 */
-gulp.task('compile-ts', () => {
+gulp.task('compile-ts',['ts-lint'] ,() => {
     var sourceTsFiles = [config.allTsFiles, config.typingTsFiles]; //reference to library .d.ts files
 
     var tsResult = gulp.src(sourceTsFiles)
@@ -64,26 +64,26 @@ gulp.task('compile-ts', () => {
 
     return tsResult.js
     .pipe(ngAnnotate())
-    .pipe(sourcemaps.write(config.mapsTemp,{includeContent: false, sourceRoot: config.scripts}))
+    .pipe(sourcemaps.write(config.mapsTemp))
     .pipe(gulp.dest(config.jsTemp));
 });
 
 /*
 * Inject bower components
 */
-gulp.task('wiredep', () => {
+gulp.task('wiredep',['index-html'], () => {
     gulp.src(config.allSassFiles)
     .pipe(wiredep({
         ignorePath: /^(\.\.\/)+/
     }))
     .pipe(gulp.dest(config.styles));
 
-    gulp.src(config.indexHtml)
+    gulp.src(config.indexHtmlTemp)
     .pipe(wiredep({
         exclude: ['bootstrap-sass'],
         ignorePath: /^(\.\.\/)*\.\./
     }))
-    .pipe(gulp.dest(config.src));
+    .pipe(gulp.dest(config.temp));
 });
 
 /**
@@ -154,11 +154,10 @@ gulp.task('index-html', () => {
 
 // INJECT FILES
 gulp.task('inject', injectToIndexHtml);
-gulp.task('inject-rd',['styles','compile-ts'], injectToIndexHtml);
+gulp.task('inject-rd',['styles','compile-ts','index-html'], injectToIndexHtml);
 
 function injectToIndexHtml() {
     var sources = gulp.src([config.allJsFiles, config.allCssFiles], {read: false});
-
     return gulp.src(config.indexHtmlTemp)
         .pipe(inject(sources))
         .pipe(gulp.dest(config.temp));
@@ -168,14 +167,12 @@ function injectToIndexHtml() {
 gulp.task('useref', userefForIndexHtml);
 
 function userefForIndexHtml(){
-    return gulp.src(config.indexHtml, {base: './.tmp'})
+    return gulp.src(config.indexHtmlTemp)
         .pipe(useref({searchPath: '.'},lazypipe().pipe(sourcemaps.init, {loadMaps: true})))
+        .pipe(iff('**/main.js', uglify({mangle: false})))
+        .pipe(iff('*.css', minifyCss({compatibility: '*'})))
+        .pipe(iff('*.html', minifyHtml({conditionals: true, loose: true})))
         .pipe(sourcemaps.write('.'))
-        //.pipe(sourcemaps.init({loadMaps: true, debug: true}))
-        //.pipe(iff('*.js', uglify({mangle: false})))
-        //.pipe(iff('*.css', minifyCss({compatibility: '*'})))
-        //.pipe(iff('*.html', minifyHtml({conditionals: true, loose: true})))
-        //.pipe(sourcemaps.write('.'))
         .pipe(gulp.dest(config.dist));
 }
 

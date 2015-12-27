@@ -3,6 +3,10 @@
   "engines": {
     "node": ">=0.12.0"
   },
+  "scripts": {
+    "start": "gulp clean && gulp build && gulp serve",
+    "postinstall": "bower update && tsd update"
+  },
   "devDependencies": {
     "browser-sync": "^2.10.1",
     "del": "^2.2.0",
