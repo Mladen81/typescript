@@ -19,6 +19,9 @@
     },
     "angularjs/angular-animate.d.ts": {
       "commit": "a6ff9f6e195a334afd89e4b721d05e9520eee4c0"
+    },
+    "jasmine/jasmine.d.ts": {
+      "commit": "dc9dabe74a5be62613b17a3605309783a12ff28a"
     }
   }
 }

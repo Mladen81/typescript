@@ -40,5 +40,6 @@ module.exports = function () {
     this.indexHtmlTemp=this.temp +'index.html';
     this.specRunnerFile = this.test+'specs.html';
     this.typingTsFiles = this.typings + '**/*.ts';
+    this.karmaConfFile = this.test+'karma.conf.js';
 
 }

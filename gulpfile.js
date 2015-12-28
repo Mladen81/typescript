@@ -8,6 +8,7 @@ var del = require('del');
 var browserSync = require('browser-sync');
 var wiredep = require('wiredep').stream;
 var lazypipe = require('lazypipe');
+var Server = require('karma').Server;
 
 require('require-dir')('./gulp');
 
@@ -15,7 +16,6 @@ var Config = require('./gulpfile.config');
 var config = new Config();
 
 var tsProject = $.typescript.createProject('tsconfig.json');
-
 /**
 * Clean all
 */
@@ -65,6 +65,13 @@ gulp.task('wiredep',['index-html'], () => {
         ignorePath: /^(\.\.\/)*\.\./
     }))
     .pipe(gulp.dest(config.temp));
+
+    // gulp.src(config.karmaConfFile)
+    // .pipe(wiredep({
+    //     exclude: ['bootstrap-sass'],
+    //     ignorePath: /^(\.\.\/)*\.\./
+    // }))
+    // .pipe(gulp.dest(config.test));
 });
 
 /**
@@ -157,8 +164,11 @@ function userefForIndexHtml(){
         .pipe(gulp.dest(config.dist));
 }
 
+
+
 gulp.task('build', ['styles','compile-ts','inject-rd','wiredep','extras','fonts','images'], userefForIndexHtml);
 
+// SERVE
 
 gulp.task('serve:dist', () => {
   browserSync({
@@ -178,4 +188,23 @@ gulp.task('serve', () => {
       baseDir: ['dist','.tmp','src/scripts']
     }
   });
+});
+
+/**
+ * Run test once and exit
+ */
+gulp.task('test', function (done) {
+  new Server({
+    configFile: require('path').resolve(config.karmaConfFile),
+    singleRun: true
+  }, done).start();
+});
+
+/**
+ * Watch for file changes and re-run tests on each change
+ */
+gulp.task('tdd', function (done) {
+  new Server({
+    configFile: require('path').resolve(config.karmaConfFile),
+  }, done).start();
 });
