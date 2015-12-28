@@ -1,39 +1,20 @@
 'use strict';
 
 var gulp = require('gulp');
-var inject = require('gulp-inject');
-var tsc = require('gulp-typescript');
-var tslint = require('gulp-tslint');
-var sourcemaps = require('gulp-sourcemaps');
-var del = require('del');
-var mainBowerFiles = require('main-bower-files');
-var browserSync = require('browser-sync');
-var ngAnnotate = require('gulp-ng-annotate');
-var browserSync = require('browser-sync');
-var wiredep = require('wiredep').stream;
-var iff  =require('gulp-if');
-var cache =require('gulp-cache');
-var sass =require('gulp-sass');
-var plumber =require('gulp-plumber');
-var autoprefixer=require('gulp-autoprefixer');
-var imagemin =require('gulp-imagemin');
-var uglify = require('gulp-uglify');
-var useref = require('gulp-useref');
-var minifyCss = require('gulp-minify-css');
-var minifyHtml = require('gulp-minify-html');
-var eol = require('gulp-eol');
-var usemin = require('gulp-usemin');
-var rev = require('gulp-rev');
-var lazypipe = require('lazypipe');
 var $ = require("gulp-load-plugins")({lazy: false});
 
-//const $ = gulpLoadPlugins();
+var mainBowerFiles = require('main-bower-files');
+var del = require('del');
+var browserSync = require('browser-sync');
+var wiredep = require('wiredep').stream;
+var lazypipe = require('lazypipe');
 
-var tsProject = tsc.createProject('tsconfig.json');
+require('require-dir')('./gulp');
 
 var Config = require('./gulpfile.config');
 var config = new Config();
-const reload = browserSync.reload;
+
+var tsProject = $.typescript.createProject('tsconfig.json');
 
 /**
 * Clean all
@@ -46,8 +27,8 @@ gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 */
 gulp.task('ts-lint', () => {
     return gulp.src(config.allTsFiles)
-    .pipe(tslint())
-    .pipe(tslint.report('verbose'));
+    .pipe($.tslint())
+    .pipe($.tslint.report('verbose'));
 });
 
 /**
@@ -57,14 +38,14 @@ gulp.task('compile-ts',['ts-lint'] ,() => {
     var sourceTsFiles = [config.allTsFiles, config.typingTsFiles]; //reference to library .d.ts files
 
     var tsResult = gulp.src(sourceTsFiles)
-    .pipe(sourcemaps.init())
-    .pipe(tsc(tsProject));
+    .pipe($.sourcemaps.init())
+    .pipe($.typescript(tsProject));
 
     tsResult.dts.pipe(gulp.dest(config.jsTemp));
 
     return tsResult.js
-    .pipe(ngAnnotate())
-    .pipe(sourcemaps.write(config.mapsTemp))
+    .pipe($.ngAnnotate())
+    .pipe($.sourcemaps.write(config.mapsTemp))
     .pipe(gulp.dest(config.jsTemp));
 });
 
@@ -91,17 +72,17 @@ gulp.task('wiredep',['index-html'], () => {
 */
 gulp.task('styles', () => {
     return gulp.src(config.allSassFiles)
-    .pipe(plumber())
-    .pipe(sourcemaps.init())
-    .pipe(sass.sync({
+    .pipe($.plumber())
+    .pipe($.sourcemaps.init())
+    .pipe($.sass.sync({
         outputStyle: 'expanded',
         precision: 10,
         includePaths: ['.']
-    }).on('error', sass.logError))
-    .pipe(autoprefixer({browsers: ['last 1 version']}))
-    .pipe(sourcemaps.write(config.mapsTemp,{includeContent: false, sourceRoot: config.src}))
+    }).on('error', $.sass.logError))
+    .pipe($.autoprefixer({browsers: ['last 1 version']}))
+    .pipe($.sourcemaps.write(config.mapsTemp,{includeContent: false, sourceRoot: config.src}))
     .pipe(gulp.dest(config.cssTemp))
-    .pipe(reload({stream: true}));
+    .pipe(browserSync.reload({stream: true}));
 });
 
 /*
@@ -109,7 +90,7 @@ gulp.task('styles', () => {
 */
 gulp.task('images', () => {
     return gulp.src(config.allImageFiles)
-    .pipe(iff(iff.isFile, cache(imagemin({
+    .pipe($.if($.if.isFile, $.cache($.imagemin({
         progressive: true,
         interlaced: true,
         // don't remove IDs from SVGs, they are often used
@@ -159,7 +140,7 @@ gulp.task('inject-rd',['styles','compile-ts','index-html'], injectToIndexHtml);
 function injectToIndexHtml() {
     var sources = gulp.src([config.allJsFiles, config.allCssFiles], {read: false});
     return gulp.src(config.indexHtmlTemp)
-        .pipe(inject(sources))
+        .pipe($.inject(sources))
         .pipe(gulp.dest(config.temp));
 }
 
@@ -168,11 +149,11 @@ gulp.task('useref', userefForIndexHtml);
 
 function userefForIndexHtml(){
     return gulp.src(config.indexHtmlTemp)
-        .pipe(useref({searchPath: '.'},lazypipe().pipe(sourcemaps.init, {loadMaps: true})))
-        .pipe(iff('**/main.js', uglify({mangle: false})))
-        .pipe(iff('*.css', minifyCss({compatibility: '*'})))
-        .pipe(iff('*.html', minifyHtml({conditionals: true, loose: true})))
-        .pipe(sourcemaps.write('.'))
+        .pipe($.useref({searchPath: '.'},lazypipe().pipe($.sourcemaps.init, {loadMaps: true})))
+        .pipe($.if('**/main.js', $.uglify({mangle: false})))
+        .pipe($.if('*.css', $.minifyCss({compatibility: '*'})))
+        .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
+        .pipe($.sourcemaps.write('.'))
         .pipe(gulp.dest(config.dist));
 }
 

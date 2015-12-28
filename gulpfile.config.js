@@ -1,6 +1,6 @@
 'use strict';
-var GulpConfig = (function () {
-    function gulpConfig() {
+
+module.exports = function () {
 
     this.src='./src/';
     this.dist='./dist/';
@@ -41,8 +41,4 @@ var GulpConfig = (function () {
     this.specRunnerFile = this.test+'specs.html';
     this.typingTsFiles = this.typings + '**/*.ts';
 
-    }
-    return gulpConfig;
-})();
-
-module.exports = GulpConfig;
+}
