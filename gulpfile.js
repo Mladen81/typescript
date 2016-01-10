@@ -26,7 +26,9 @@ gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
 * Lint all custom TypeScript files.
 */
 gulp.task('ts-lint', () => {
-    return gulp.src(config.allTsFiles)
+    var sourceTsFiles = [config.allTsFiles, config.allTsTestFiles]; //reference to library .d.ts files
+
+    return gulp.src(sourceTsFiles)
     .pipe($.tslint())
     .pipe($.tslint.report('verbose'));
 });
@@ -49,6 +51,25 @@ gulp.task('compile-ts',['ts-lint'] ,() => {
     .pipe(gulp.dest(config.jsTemp));
 });
 
+/**
+* Compile TypeScript and include references to library and app .d.ts files.
+*/
+gulp.task('compile-test-ts',['ts-lint'] ,() => {
+    var sourceTsFiles = [config.allTsTestFiles]; //reference to library .d.ts files
+
+    var tsResult = gulp.src(sourceTsFiles)
+    .pipe($.sourcemaps.init())
+    .pipe($.typescript(tsProject));
+
+    //tsResult.dts.pipe(gulp.dest(config.jsTemp));
+
+    return tsResult.js
+    .pipe($.sourcemaps.write(config.mapsTemp))
+    .pipe(gulp.dest(config.specTemp));
+});
+
+
+
 /*
 * Inject bower components
 */
@@ -66,12 +87,12 @@ gulp.task('wiredep',['index-html'], () => {
     }))
     .pipe(gulp.dest(config.temp));
 
-    // gulp.src(config.karmaConfFile)
-    // .pipe(wiredep({
-    //     exclude: ['bootstrap-sass'],
-    //     ignorePath: /^(\.\.\/)*\.\./
-    // }))
-    // .pipe(gulp.dest(config.test));
+    gulp.src(config.karmaConfFile)
+    .pipe(wiredep({
+        exclude: ['bootstrap-sass'],
+        ignorePath: /^(\.\.\/)*\.\./
+    }))
+    .pipe(gulp.dest(config.test));
 });
 
 /**
@@ -158,7 +179,7 @@ function userefForIndexHtml(){
     return gulp.src(config.indexHtmlTemp)
         .pipe($.useref({searchPath: '.'},lazypipe().pipe($.sourcemaps.init, {loadMaps: true})))
         .pipe($.if('**/main.js', $.uglify({mangle: false})))
-        .pipe($.if('*.css', $.minifyCss({compatibility: '*'})))
+        .pipe($.if('*.css', $.cssnano()))
         .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
         .pipe($.sourcemaps.write('.'))
         .pipe(gulp.dest(config.dist));
@@ -193,7 +214,7 @@ gulp.task('serve', () => {
 /**
  * Run test once and exit
  */
-gulp.task('test', function (done) {
+gulp.task('test',['compile-test-ts'], function (done) {
   new Server({
     configFile: require('path').resolve(config.karmaConfFile),
     singleRun: true

@@ -25,9 +25,16 @@ module.exports = function () {
     this.jsTemp=this.temp + 'js/';
     this.cssTemp=this.temp + 'css/';
     this.mapsTemp='.';
+    this.specTemp=this.temp + 'test/spec/';
+
+
+    //TEST
+    this.spec = this.test +'spec/';
+
 
     //FILES
     this.allTsFiles= this.scripts+"**/*.ts";
+    this.allTsTestFiles=this.spec+"**/*.ts";
     this.allLessFiles= this.styles+"**/*.less";
     this.allSassFiles= this.styles+"**/*.scss";
     this.allJsFiles=this.temp +'js/**/*.js';
